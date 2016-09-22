@@ -1,5 +1,6 @@
 from collections import namedtuple
 import statistics as stats
+import math
 
 
 def yieldrows(r):
@@ -9,8 +10,7 @@ def yieldrows(r):
 
 
 def partition4(data):
-    size = len(data)
-    mid = size // 2
+    mid = len(data) // 2
     return [
         [r[0:mid] for r in data[0:mid]],
         [r[0:mid] for r in data[mid:]],
@@ -19,14 +19,26 @@ def partition4(data):
     ]
 
 
+class Box(namedtuple('Box', 'x0,x1,y0,y1')):
+    def partition(self):
+        x0, x1, y0, y1 = self
+        mid = (x1 - x0) // 2
+        return [
+            Box(x0, x0 + mid, y0, y0 + mid),
+            Box(x0, x0 + mid, y1 - mid, y1),
+            Box(x1 - mid, x1, y0, y0 + mid),
+            Box(x1 - mid, x1, y1 - mid, y1),
+        ]
+
+
 class Region:
     def __init__(self, data, target):
         self.data = data
-        self.size = len(data)
         self.target = target
 
         self.mean = stats.mean(yieldrows(data))
-        self.stdev = stats.pstdev(yieldrows(data), mu=self.mean)
+        self.stdev = 0 if len(data) == 1 else \
+            stats.pstdev(yieldrows(data), mu=self.mean)
 
     @property
     def acceptable(self):
