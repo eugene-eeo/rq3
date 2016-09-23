@@ -1,18 +1,23 @@
-from collections import namedtuple
+from collections import namedtuple, deque
 import statistics as stats
 import math
-
-
-def yieldrows(r):
-    for row in r:
-        for item in row:
-            yield item
 
 
 class Box(namedtuple('Box', 'x0,x1,y0,y1,data')):
     @staticmethod
     def from_data(data):
         return Box(0, len(data[0]), 0, len(data), data)
+
+    dx = property(lambda s: s.x1 - s.x0)
+    dy = property(lambda s: s.y1 - s.y0)
+
+    def seq(self):
+        for row in self.data:
+            for item in row:
+                yield item
+
+    def dimensions(self):
+        return self.dx * self.dy
 
     def partition(self):
         x0, x1, y0, y1, data = self
@@ -22,25 +27,25 @@ class Box(namedtuple('Box', 'x0,x1,y0,y1,data')):
         xm = x0 + x_mid
         ym = y0 + y_mid
 
-        tl = [r[:x_mid] for r in data[:y_mid]]
-        tr = [r[x_mid:] for r in data[:y_mid]]
-        bl = [r[:x_mid] for r in data[y_mid:]]
-        br = [r[x_mid:] for r in data[y_mid:]]
+        chunks = [
+            Box(x0, xm, y0, ym, [r[:x_mid] for r in data[:y_mid]]),
+            Box(xm, x1, y0, ym, [r[x_mid:] for r in data[:y_mid]]),
+            Box(x0, xm, ym, y1, [r[:x_mid] for r in data[y_mid:]]),
+            Box(xm, x1, ym, y1, [r[x_mid:] for r in data[y_mid:]]),
+        ]
 
-        if tl: yield Box(x0, xm, y0, ym, tl)
-        if tr: yield Box(xm, x1, y0, ym, tr)
-        if bl: yield Box(x0, xm, ym, y1, bl)
-        if br: yield Box(xm, x1, ym, y1, br)
+        for box in chunks:
+            if box.dimensions() > 0:
+                yield box
 
 
 class Region:
     def __init__(self, box, target):
         self.box = box
-        self.data = box.data
         self.target = target
-        self.mean = stats.mean(yieldrows(box.data))
-        self.stdev = 0 if len(box.data) == 1 else \
-            stats.pstdev(yieldrows(box.data), mu=self.mean)
+        self.mean = stats.mean(box.seq())
+        self.stdev = 0 if box.dimensions() == 1 else \
+            stats.pstdev(box.seq(), mu=self.mean)
 
     @property
     def ok(self):
@@ -59,3 +64,21 @@ class Region:
     @classmethod
     def from_data(cls, data, target):
         return cls(Box.from_data(data), target)
+
+    def write_to(self, buff):
+        for x in range(self.box.x0, self.box.x1):
+            for y in range(self.box.y0, self.box.y1):
+                buff[y][x] = self.mean
+
+    def fill(self):
+        buff = [([0] * self.box.dx) for _ in range(self.box.dy)]
+        proc = deque([self])
+        while proc:
+            r = proc.popleft()
+            b = list(r.partition())
+            for item in b:
+                if item is r:
+                    r.write_to(buff)
+                    break
+                proc.append(item)
+        return buff
