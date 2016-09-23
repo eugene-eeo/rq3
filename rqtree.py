@@ -16,9 +16,9 @@ def partition_box(box):
     x0, x1, y0, y1 = box
     mid = (x1 - x0) // 2
     return [
-        Box(x0, x0 + mid, y0, y0 + mid),
-        Box(x0, x0 + mid, y1 - mid, y1),
-        Box(x1 - mid, x1, y0, y0 + mid),
+        Box(x0, x0 + mid - 1, y0, y0 + mid - 1),
+        Box(x0, x0 + mid - 1, y1 - mid, y1),
+        Box(x1 - mid, x1, y0, y0 + mid - 1),
         Box(x1 - mid, x1, y1 - mid, y1),
     ]
 
@@ -34,23 +34,34 @@ def partition4(data):
 
 
 class Region:
-    def __init__(self, data, target, box=None):
+    def __init__(self, data, target, box):
         self.data = data
         self.target = target
-        maxindex = len(data)
-        self.box = box or Box(0, maxindex, 0, maxindex)
-
+        self.box = box
         self.mean = stats.mean(yieldrows(data))
         self.stdev = 0 if len(data) == 1 else \
             stats.pstdev(yieldrows(data), mu=self.mean)
 
     @property
-    def acceptable(self):
+    def ok(self):
         return self.stdev <= self.target
 
     def partition(self):
-        if self.acceptable:
+        if self.ok:
             yield self
             return
         for box, data in zip(partition_box(self.box), partition4(self.data)):
             yield Region(data, self.target, box)
+
+    def __repr__(self):
+        return 'Region(%r, µ=%r, σ=%r, ok=%r)' % (
+                self.box,
+                self.mean,
+                self.stdev,
+                self.ok,
+                )
+
+    @classmethod
+    def from_data(cls, data, target):
+        box = Box(0, len(data[0]) - 1, 0, len(data) - 1)
+        return cls(data, target, box)
