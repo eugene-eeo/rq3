@@ -79,8 +79,7 @@ class Region:
         proc = deque([self])
         while proc:
             r = proc.popleft()
-            b = list(r.partition())
-            for item in b:
+            for item in r.partition():
                 if item is r:
                     r.write_to(buff)
                     break
