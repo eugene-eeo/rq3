@@ -9,38 +9,38 @@ def yieldrows(r):
             yield item
 
 
-Box = namedtuple('Box', 'x0,x1,y0,y1')
+class Box(namedtuple('Box', 'x0,x1,y0,y1,data')):
+    @staticmethod
+    def from_data(data):
+        return Box(0, len(data[0]), 0, len(data), data)
 
+    def partition(self):
+        x0, x1, y0, y1, data = self
+        x_mid = (x1 - x0) // 2
+        y_mid = (y1 - y0) // 2
 
-def partition_box(box):
-    x0, x1, y0, y1 = box
-    mid = (x1 - x0) // 2
-    return [
-        Box(x0, x0 + mid - 1, y0, y0 + mid - 1),
-        Box(x0, x0 + mid - 1, y1 - mid, y1),
-        Box(x1 - mid, x1, y0, y0 + mid - 1),
-        Box(x1 - mid, x1, y1 - mid, y1),
-    ]
+        xm = x0 + x_mid
+        ym = y0 + y_mid
 
+        tl = [r[:x_mid] for r in data[:y_mid]]
+        tr = [r[x_mid:] for r in data[:y_mid]]
+        bl = [r[:x_mid] for r in data[y_mid:]]
+        br = [r[x_mid:] for r in data[y_mid:]]
 
-def partition4(data):
-    mid = len(data) // 2
-    return [
-        [r[0:mid] for r in data[0:mid]],
-        [r[0:mid] for r in data[mid:]],
-        [r[mid:] for r in data[0:mid]],
-        [r[mid:] for r in data[mid:]],
-    ]
+        if tl: yield Box(x0, xm, y0, ym, tl)
+        if tr: yield Box(xm, x1, y0, ym, tr)
+        if bl: yield Box(x0, xm, ym, y1, bl)
+        if br: yield Box(xm, x1, ym, y1, br)
 
 
 class Region:
-    def __init__(self, data, target, box):
-        self.data = data
-        self.target = target
+    def __init__(self, box, target):
         self.box = box
-        self.mean = stats.mean(yieldrows(data))
-        self.stdev = 0 if len(data) == 1 else \
-            stats.pstdev(yieldrows(data), mu=self.mean)
+        self.data = box.data
+        self.target = target
+        self.mean = stats.mean(yieldrows(box.data))
+        self.stdev = 0 if len(box.data) == 1 else \
+            stats.pstdev(yieldrows(box.data), mu=self.mean)
 
     @property
     def ok(self):
@@ -50,18 +50,12 @@ class Region:
         if self.ok:
             yield self
             return
-        for box, data in zip(partition_box(self.box), partition4(self.data)):
-            yield Region(data, self.target, box)
+        for box in self.box.partition():
+            yield Region(box, self.target)
 
     def __repr__(self):
-        return 'Region(%r, µ=%r, σ=%r, ok=%r)' % (
-                self.box,
-                self.mean,
-                self.stdev,
-                self.ok,
-                )
+        return 'Region(%r)' % (self.box,)
 
     @classmethod
     def from_data(cls, data, target):
-        box = Box(0, len(data[0]) - 1, 0, len(data) - 1)
-        return cls(data, target, box)
+        return cls(Box.from_data(data), target)
