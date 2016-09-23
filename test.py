@@ -1,11 +1,7 @@
 from pprint import pprint
-from rqtree import Region
 from itertools import islice
 import random
-
-print('5x5:')
-r = Region.from_data([[0, 1, 2, 3, 4]]*5, target=0)
-pprint(r.fill())
+from rq3 import Region
 
 
 def stream(a, b):

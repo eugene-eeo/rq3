@@ -1,20 +1,12 @@
-rqtree
-======
+rq3
+===
 
 stupidly inefficient grayscale image compression using quadtrees and elementary
 statistics knowledge. the idea is that you take a square ``n * n`` matrix of
 darkness values and supply a target standard deviation (call this ``s``). The
-algorithm is simple::
+algorithm is simple:
 
-    ┌───┬───┬───────┐
-    │   │   │       │
-    ├───┼─┬─┤       │
-    │   ├─┼─┤       │
-    ├─┬─┼─┼─┼─┬─┬───┤
-    ├─┼─┼─┼─┼─┼─┤   │
-    ├─┴─┼─┴─┼─┼─┼───┤
-    │   │   ├─┼─┤   │
-    └───┴───┴─┴─┴───┘
+.. image:: media/quadtree.png
 
 - if the standard deviation of all the darkness values within an ``x * x``
   region ``<= s``, said region will be represented using the arithmetic mean
