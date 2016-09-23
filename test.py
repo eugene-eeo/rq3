@@ -1,4 +1,3 @@
-from pprint import pprint
 from itertools import islice
 import random
 from rq3 import Region
