@@ -11,10 +11,14 @@ class Box(namedtuple('Box', 'x0,x1,y0,y1')):
     dx = property(lambda s: s.x1 - s.x0)
     dy = property(lambda s: s.y1 - s.y0)
 
+    def indexes(self):
+        for x in range(self.x0, self.x1):
+            for y in range(self.y0, self.y1):
+                yield x, y
+
     def seq(self, data):
-        for y in range(self.y0, self.y1):
-            for x in range(self.x0, self.x1):
-                yield data[y][x]
+        for x, y in self.indexes():
+            yield data[y][x]
 
     def dimensions(self):
         return self.dx * self.dy
@@ -67,9 +71,8 @@ class Region:
         return cls(Box.from_data(data), data, target)
 
     def write_to(self, buff):
-        for x in range(self.box.x0, self.box.x1):
-            for y in range(self.box.y0, self.box.y1):
-                buff[y][x] = self.mean
+        for x, y in self.box.indexes():
+            buff[y][x] = self.mean
 
     def fill(self):
         buff = [([0] * self.box.dx) for _ in range(self.box.dy)]
