@@ -1,6 +1,7 @@
 from collections import deque
 import statistics as stats
 from rq3.box import Box
+from rq3.partitioning import quadtree_partition
 
 
 def rectangular_array(x, y):
@@ -8,17 +9,18 @@ def rectangular_array(x, y):
 
 
 class Region:
-    def __init__(self, box, data, target):
+    def __init__(self, box, data, target, partition_strategy):
         self.box = box
         self.data = data
         self.target = target
+        self.ps = partition_strategy
         self.mean = stats.mean(box.seq(data))
         self.stdev = 0 if box.dimensions() == 1 else \
             stats.pstdev(box.seq(data), mu=self.mean)
 
     @classmethod
-    def from_data(cls, data, target):
-        return cls(Box.from_data(data), data, target)
+    def from_data(cls, data, target, partition_strategy=quadtree_partition):
+        return cls(Box.from_data(data), data, target, partition_strategy)
 
     @property
     def should_partition(self):
@@ -26,8 +28,8 @@ class Region:
 
     def partition(self):
         if self.should_partition:
-            for box in self.box.partition():
-                yield Region(box, self.data, self.target)
+            for box in self.box.partition(self.ps):
+                yield Region(box, self.data, self.target, self.ps)
             return
         yield self
 

@@ -25,21 +25,7 @@ class Box(namedtuple('Box', 'x0,x1,y0,y1')):
     def dimensions(self):
         return self.height * self.width
 
-    def partition(self):
-        x0, x1, y0, y1 = self
-        x_mid = (x1 - x0) // 2
-        y_mid = (y1 - y0) // 2
-
-        xm = x0 + x_mid
-        ym = y0 + y_mid
-
-        chunks = [
-            Box(x0, xm, y0, ym),
-            Box(xm, x1, y0, ym),
-            Box(x0, xm, ym, y1),
-            Box(xm, x1, ym, y1),
-        ]
-
-        for box in chunks:
+    def partition(self, strategy):
+        for box in strategy(self):
             if box.dimensions() > 0:
                 yield box
