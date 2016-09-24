@@ -1,5 +1,6 @@
 from rq3.region import Region
 from rq3.partitioning import random_partition, quadtree_partition
+from rq3.metrics import stdev_mean
 import numpy as np
 
 import matplotlib
@@ -40,5 +41,9 @@ heatmap(buff, 'results/real.png')
 
 for name, scheme in SCHEMES:
     for n in frange(0, 7, jump=0.5):
-        r = Region.from_data(buff, target=n, pscheme=scheme)
+        r = Region.from_data(
+            buff,
+            metrics=stdev_mean(n),
+            pscheme=scheme,
+            )
         heatmap(r.fill(), 'results/%s-%s.png' % (name, n))
