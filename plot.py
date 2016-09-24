@@ -1,4 +1,5 @@
 from rq3.region import Region
+from rq3.partitioning import random_partition, quadtree_partition
 import numpy as np
 
 import matplotlib
@@ -28,9 +29,15 @@ def heatmap(b, filename):
 m = 50
 n = 50
 
-buff = np.random.randint(1, 21, size=(m, n)).tolist()
-heatmap(buff, 'real.png')
+SCHEMES = [
+    ('random', random_partition),
+    ('quad',   quadtree_partition),
+]
 
-for n in frange(0, 7, jump=0.5):
-    r = Region.from_data(buff, target=n)
-    heatmap(r.fill(), 'comp-%s.png' % n)
+buff = np.random.randint(1, 21, size=(m, n)).tolist()
+heatmap(buff, 'results/real.png')
+
+for name, scheme in SCHEMES:
+    for n in frange(0, 7, jump=0.5):
+        r = Region.from_data(buff, target=n, pscheme=scheme)
+        heatmap(r.fill(), 'results/%s-%s.png' % (name, n))
