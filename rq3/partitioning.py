@@ -25,7 +25,8 @@ def rrange(start, end):
             break
 
 
-def random_partition(x0, x1, y0, y1):
-    for x0, x1 in rrange(x0, x1):
-        for y0, y1 in rrange(y0, y1):
-            yield Box(x0, x1, y0, y1)
+def random_partition(box):
+    x0, x1, y0, y1 = box
+    for x_start, x_end in rrange(x0, x1):
+        for y_start, y_end in rrange(y0, y1):
+            yield Box(x_start, x_end, y_start, y_end)

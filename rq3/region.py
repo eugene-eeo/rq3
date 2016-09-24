@@ -9,18 +9,18 @@ def rectangular_array(x, y):
 
 
 class Region:
-    def __init__(self, box, data, target, partition_strategy):
+    def __init__(self, box, data, target, pscheme):
         self.box = box
         self.data = data
         self.target = target
-        self.ps = partition_strategy
+        self.pscheme = pscheme
         self.mean = stats.mean(box.seq(data))
         self.stdev = 0 if box.dimensions() == 1 else \
             stats.pstdev(box.seq(data), mu=self.mean)
 
     @classmethod
-    def from_data(cls, data, target, partition_strategy=quadtree_partition):
-        return cls(Box.from_data(data), data, target, partition_strategy)
+    def from_data(cls, data, target, pscheme=quadtree_partition):
+        return cls(Box.from_data(data), data, target, pscheme)
 
     @property
     def should_partition(self):
@@ -28,8 +28,8 @@ class Region:
 
     def partition(self):
         if self.should_partition:
-            for box in self.box.partition(self.ps):
-                yield Region(box, self.data, self.target, self.ps)
+            for box in self.box.partition(self.pscheme):
+                yield Region(box, self.data, self.target, self.pscheme)
             return
         yield self
 
