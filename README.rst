@@ -24,6 +24,6 @@ todo
 ----
 
 - clean up code
-- test against different distributions
 - different heurestics instead of just stdev
 - maybe use random partitioning
+- rewrite in Go because reasons
