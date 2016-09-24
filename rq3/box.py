@@ -7,19 +7,16 @@ class Box(namedtuple('Box', 'x0,x1,y0,y1')):
         size = len(data)
         return cls(0, 0 if size == 0 else len(data[0]), 0, size)
 
-    height = property(lambda s: s.y1 - s.y0)
-    width = property(lambda s: s.x1 - s.x0)
+    height = property(lambda b: b.y1 - b.y0)
+    width = property(lambda b: b.x1 - b.x0)
 
-    def x_indexes(self):
-        return range(self.x0, self.x1)
-
-    def y_indexes(self):
-        return range(self.y0, self.y1)
+    X = property(lambda b: range(b.x0, b.x1))
+    Y = property(lambda b: range(b.y0, b.y1))
 
     def seq(self, data):
-        for y in self.y_indexes():
+        for y in self.Y:
             row = data[y]
-            for x in self.x_indexes():
+            for x in self.X:
                 yield row[x]
 
     def dimensions(self):

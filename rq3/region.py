@@ -34,9 +34,9 @@ class Region:
         yield self
 
     def write_to(self, buff):
-        for y in self.box.y_indexes():
+        for y in self.box.Y:
             r = buff[y]
-            for x in self.box.x_indexes():
+            for x in self.box.X:
                 r[x] = self.mean
 
     def fill(self):
