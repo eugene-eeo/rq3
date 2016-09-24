@@ -22,7 +22,8 @@ def frange(x, y, jump=1.0):
 
 def heatmap(b, filename):
     plt.clf()
-    plt.imshow(b, cmap='binary', interpolation='nearest')
+    cax = plt.imshow(b, cmap='binary', interpolation='nearest')
+    plt.colorbar(cax, ticks=list(range(1, 21)))
     plt.savefig(filename)
     plt.close()
 
