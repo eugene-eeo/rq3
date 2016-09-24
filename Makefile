@@ -1,4 +1,5 @@
 run:
+	python test.py
 	mkdir -p results
 	python plot.py
 
