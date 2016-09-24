@@ -1,6 +1,6 @@
 from itertools import islice
 import random
-from rq3 import Region
+from rq3.region import Region
 
 
 def stream(a, b):

@@ -1,4 +1,4 @@
-from rq3 import Region
+from rq3.region import Region
 import numpy as np
 
 import matplotlib
